@@ -6,8 +6,10 @@ import sys
 
 class SodukuBoard:
     BOARD_SIZE = 9
+    VALID = np.arrange(1,10)
 
     board_np = np.zeros([BOARD_SIZE, BOARD_SIZE])
+
     board = [[0] * BOARD_SIZE ] * BOARD_SIZE
 
     ref_board = []
@@ -33,6 +35,30 @@ class SodukuBoard:
 
             self.ref_board = ref_board
             self.ref_board_np = np.array(ref_board)
+
+
+    def check_rows(board_np):
+        for i in xrange(BOARD_SIZE):
+            if len(np.unique(board_np[i,:])) < BOARD_SIZE:
+                return False
+        return True
+
+    def check_columns(board_np):
+        for i in xrange(BOARD_SIZE):
+            if len(np.unique(board_np[:,i])) < BOARD_SIZE:
+                return False
+        return True
+
+    def check_sub_boards(board_np)
+        #need to run through each subboard, there are nine ... and
+
+
+    def validate_solution(board_np):
+        if check_rows(board_np):
+            if check_columns(board_np):
+                if check_sub_boards(board_np):
+                    return True
+
 
 
 def main():
