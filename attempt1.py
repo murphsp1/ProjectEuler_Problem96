@@ -1,17 +1,21 @@
 import numpy as np
 import sys
+import sets as set
 
 
 BOARD_SIZE = 9
-VALID = np.arange(1,10)
+VALID = set.Set(np.arange(1,10))
 
-class SodukuBoard:
+class SodukuBoard(object):
+
 
     def __init__(self):
         self.board_np = np.zeros([BOARD_SIZE, BOARD_SIZE])
-        self.board = [[0] * BOARD_SIZE ] * BOARD_SIZE
+        #self.board = [[0] * BOARD_SIZE ] * BOARD_SIZE #This has an error according to A.
         self.ref_board = []
         self.ref_board = self.read_boards_from_txt()
+        self.ref_board_np = np.array(self.ref_board)
+        self.board_np = np.copy(self.ref_board_np[0,:,:])
 
 
     def __str__(self):
@@ -26,6 +30,9 @@ class SodukuBoard:
                 return False
         return True
 
+    def update_board(self, i, j, value):
+        self.board_np[i,j] = value
+        return True
 
     def read_boards_from_txt(self):
 
@@ -44,10 +51,7 @@ class SodukuBoard:
                     new_board_row = [int(c) for c in line if c in '1234567890']
                     ref_board[board_number].append(new_board_row)
 
-            self.ref_board = ref_board
-            self.ref_board_np = np.array(ref_board)
-        return True
-
+        return ref_board
 
 
     def check_columns(self):
@@ -55,6 +59,7 @@ class SodukuBoard:
             if len(np.unique(self.board_np[:,i])) < BOARD_SIZE:
                 return False
         return True
+
 
     def check_sub_boards(self):
 
@@ -70,20 +75,79 @@ class SodukuBoard:
 
 
     def validate_solution(self):
-        if self.check_rows(self.board_np):
-            if self.check_columns(board_np):
-                if self.check_sub_boards(board_np):
+        if self.check_rows():
+            if self.check_columns():
+                if self.check_sub_boards():
+                    print("This board has been solved!")
                     return True
         return False
 
+    def get_sub_board(self, i, j):
+        #this function returns the sub_board needed of the given i,j
+        row = np.floor(i/3) * 3
+        col = np.floor(j/3) * 3
+        sub_board = self.board_np[row:row+3, col:col+3]
+        return sub_board
+
+    def determine_valid_moves(self, i, j):
+
+        b_np = self.board_np
+        if b_np[i,j]!=0:
+            return([],VALID)
+
+        current_val = b_np[i,j]
+        col = set.Set(self.board_np[:,j])
+        print(col)
+        row = set.Set(self.board_np[i,:])
+        print(row)
+        sub_board = self.get_sub_board(i, j)
+        sub_board = set.Set(sub_board.flatten())
+        print(sub_board)
+
+        forbidden = col.union(row)
+        forbidden = forbidden.union(sub_board)
+        print(forbidden)
+        allowed = VALID - forbidden
+        return(allowed, forbidden)
+
+    def compute_best_move(self):
+        best_r = -1
+        best_c = -1
+        best_allowed = [-1] * 9
+        for r in xrange(BOARD_SIZE):
+            for c in xrange(BOARD_SIZE):
+                print (r, c)
+                (allowed, forbidden) = self.determine_valid_moves(r,c)
+                if (allowed!=[]):
+                    print(allowed, forbidden)
+                    if (len(allowed) < len(best_allowed)):
+                        best_allowed = allowed
+                        best_r = r
+                        best_c = c
+                        if len(allowed)==1:
+                            return (r, c, allowed)
+
+        return (r, c, allowed)
 
 
 def main():
-    my_board = SodukuBoard()
-    my_board.read_boards_from_txt()
-    print(my_board.ref_board)
-    print(len(my_board.ref_board[0]))
-    print(my_board.ref_board_np.shape)
+    mb = SodukuBoard()
+
+    while True:
+        (r,c,allowed) = mb.compute_best_move()
+        print (r, c, allowed)
+        if len(allowed)==1:
+            mb.update_board(r, c, list(allowed)[0])
+        elif allowed==[]:
+            mb.validate_solution()
+            break
+        else:
+            print "crapper"
+            break
+
+
+    print(mb.board_np)
+    print(mb.ref_board_np[0])
 
 
 
@@ -94,3 +158,6 @@ if __name__ == '__main__':
 
 
     sys.exit(main())
+
+
+
